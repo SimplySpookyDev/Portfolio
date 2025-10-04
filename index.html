@@ -60,7 +60,8 @@
                     <div class="portfolio-item-caption d-flex align-items-center justify-content-center h-100 w-100">
                         <div class="portfolio-item-caption-content text-center text-white"><i class="fas fa-plus fa-3x"></i></div>
                     </div>
-                    <img class="img-fluid" src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" alt="Video Thumbnail" />
+                      <img class="img-fluid" src="https://img.youtube.com/vi/DbfrFgz6ElQ0/maxresdefault.jpg" alt="Video Thumbnail" />
+
                 </div>
             </div>
             <div class="col-md-6 col-lg-4 mb-5">
@@ -133,9 +134,62 @@
                     <div class="divider-custom-icon"><i class="fas fa-star"></i></div>
                     <div class="divider-custom-line"></div>
                 </div>
-                <iframe width="560" height="315" src="https://www.youtube.com/embed/dQw4w9WgXcQ" frameborder="0" allowfullscreen></iframe>
-                <pre class="mt-3 bg-dark text-white p-3"><code>-- Example Luau code
-print("Hello, world!")</code></pre>
+                <iframe width="560" height="315" src="https://youtu.be/DbfrFgz6ElQ0" frameborder="0" allowfullscreen></iframe>
+                <pre class="mt-3 bg-dark text-white p-3"><code>-- Luau code
+-- Services
+local PathfindingService = game:GetService('PathfindingService')
+
+-- Variable declerations
+local TargetPart = workspace:FindFirstChild('Target')
+local Agent = workspace:FindFirstChild('Rig')
+
+local Humanoid = Agent:FindFirstChild('Humanoid')
+assert(Humanoid, 'No valid humanoid for agent')
+
+-- Functions
+local NewPath = function()
+	return PathfindingService:CreatePath({  
+		AgentCanJump = true,
+		Costs = {['Lava'] = 10000}
+	})
+end
+
+local MoveTo = function(Position : Vector3) : RBXScriptSignal
+	Humanoid:MoveTo(Position)
+	
+	return Humanoid.MoveToFinished
+end
+
+-- Lava bricks
+local Lava = workspace:FindFirstChild('Lava'):GetChildren()
+
+table.foreach(Lava, function(Index)
+	Lava[Index].Touched:Connect(function(Hit : BasePart)
+		if Hit.Parent == Agent then
+			Humanoid.Health = 0
+		end
+	end)
+end)
+
+-- Main
+local Path = NewPath()
+local Goal = TargetPart.Position
+
+Path:ComputeAsync(Agent.HumanoidRootPart.Position, Goal)
+if not Path:GetWaypoints() then
+	error('Failed to resolve path', 1)
+end
+
+local Waypoints = Path:GetWaypoints()
+for Index, Waypoint : PathWaypoint in ipairs(Waypoints) do
+	local WaypointPosition = Waypoint.Position
+	
+	local MoveToFinished = MoveTo(WaypointPosition)
+	if Waypoint.Action == Enum.PathWaypointAction.Jump then
+		Humanoid.Jump = true
+	end
+	MoveToFinished:Wait()
+end</code></pre>
                 <button class="btn btn-primary mt-3" data-bs-dismiss="modal"><i class="fas fa-xmark fa-fw"></i> Close</button>
             </div>
         </div>
